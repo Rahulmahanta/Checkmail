@@ -1,63 +1,79 @@
-import Image from "next/image";
+'use client'
+
+import { signIn, useSession } from "next-auth/react";
+import { useState, useEffect } from "react";
+import { redirect } from "next/navigation";
 
 export default function Home() {
+  const { data: session, status } = useSession();
+  const [openaiKey, setOpenaiKey] = useState("");
+  const [showOpenaiInput, setShowOpenaiInput] = useState(false);
+
+  // If user is logged in, redirect to dashboard
+  useEffect(() => {
+    if (status === 'authenticated') {
+      redirect("/dashboard");
+    }
+  }, [status]);
+
+  const handleGoogleLogin = () => {
+    signIn("google", { callbackUrl: "/dashboard" });
+  };
+
+  const handleOpenaiClick = () => {
+    setShowOpenaiInput(true);
+  };
+
+  const handleOpenaiSubmit = (e) => {
+    e.preventDefault();
+    // Store OpenAI key in localStorage or session storage
+    localStorage.setItem("openai_api_key", openaiKey);
+    // Redirect to dashboard
+    window.location.href = "/dashboard";
+  };
+
   return (
-    <div className="flex min-h-screen items-center justify-center bg-zinc-50 font-sans dark:bg-black">
-      <main className="flex min-h-screen w-full max-w-3xl flex-col items-center justify-between py-32 px-16 bg-white dark:bg-black sm:items-start">
-        <Image
-          className="dark:invert"
-          src="/next.svg"
-          alt="Next.js logo"
-          width={100}
-          height={20}
-          priority
-        />
-        <div className="flex flex-col items-center gap-6 text-center sm:items-start sm:text-left">
-          <h1 className="max-w-xs text-3xl font-semibold leading-10 tracking-tight text-black dark:text-zinc-50">
-            To get started, edit the page.tsx file.
-          </h1>
-          <p className="max-w-md text-lg leading-8 text-zinc-600 dark:text-zinc-400">
-            Looking for a starting point or more instructions? Head over to{" "}
-            <a
-              href="https://vercel.com/templates?framework=next.js&utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
+    <div className="flex min-h-screen items-center justify-center bg-white font-sans">
+      <main className="flex min-h-screen w-full flex-col items-center justify-center">
+        <div className="flex flex-col items-center gap-12">
+          {/* Login Button Container */}
+          <div className="border border-black rounded-md p-4 w-64 text-center">
+            <button 
+              className="font-medium text-black"
+              onClick={handleGoogleLogin}
             >
-              Templates
-            </a>{" "}
-            or the{" "}
-            <a
-              href="https://nextjs.org/learn?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-              className="font-medium text-zinc-950 dark:text-zinc-50"
-            >
-              Learning
-            </a>{" "}
-            center.
-          </p>
-        </div>
-        <div className="flex flex-col gap-4 text-base font-medium sm:flex-row">
-          <a
-            className="flex h-12 w-full items-center justify-center gap-2 rounded-full bg-foreground px-5 text-background transition-colors hover:bg-[#383838] dark:hover:bg-[#ccc] md:w-[158px]"
-            href="https://vercel.com/new?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            <Image
-              className="dark:invert"
-              src="/vercel.svg"
-              alt="Vercel logomark"
-              width={16}
-              height={16}
-            />
-            Deploy Now
-          </a>
-          <a
-            className="flex h-12 w-full items-center justify-center rounded-full border border-solid border-black/[.08] px-5 transition-colors hover:border-transparent hover:bg-black/[.04] dark:border-white/[.145] dark:hover:bg-[#1a1a1a] md:w-[158px]"
-            href="https://nextjs.org/docs?utm_source=create-next-app&utm_medium=appdir-template-tw&utm_campaign=create-next-app"
-            target="_blank"
-            rel="noopener noreferrer"
-          >
-            Documentation
-          </a>
+              Login with Google
+            </button>
+          </div>
+          
+          {/* OpenAI API Key Input Container */}
+          <div className="border border-black rounded-md p-4 w-96 text-center">
+            {!showOpenaiInput ? (
+              <button 
+                className="font-medium text-black"
+                onClick={handleOpenaiClick}
+              >
+                Enter OpenAI API
+              </button>
+            ) : (
+              <form onSubmit={handleOpenaiSubmit} className="flex flex-col gap-2">
+                <input
+                  type="password"
+                  value={openaiKey}
+                  onChange={(e) => setOpenaiKey(e.target.value)}
+                  placeholder="Enter your OpenAI API key"
+                  className="border border-gray-300 p-2 rounded"
+                  required
+                />
+                <button 
+                  type="submit"
+                  className="font-medium text-black bg-gray-100 p-2 rounded hover:bg-gray-200"
+                >
+                  Submit
+                </button>
+              </form>
+            )}
+          </div>
         </div>
       </main>
     </div>
